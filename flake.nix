@@ -20,8 +20,9 @@
       devShells = forAllSystems
         (pkgs: {
           default = pkgs.mkShell {
-            packages = [ pkgs.deno ];
+            packages = [ pkgs.deno pkgs.just ];
             shellHook = ''
+              export PUPPETEER_PRODUCT="chrome"
               export PUPPETEER_SKIP_DOWNLOAD="true"
               export PUPPETEER_EXECUTABLE_PATH="${pkgs.chromium}/bin/chromium"
             '';
