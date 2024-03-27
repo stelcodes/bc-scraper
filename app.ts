@@ -1,6 +1,6 @@
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
 
-async function scrape(_, urlArg) {
+async function scrape(_flags: object, urlArg: string) {
 	console.log(`Fetching ${urlArg}`);
 	const url = new URL(urlArg);
 	url.protocol = "https:";
