@@ -21,6 +21,10 @@
         (pkgs: {
           default = pkgs.mkShell {
             packages = [ pkgs.deno ];
+            shellHook = ''
+              export PUPPETEER_SKIP_DOWNLOAD="true"
+              export PUPPETEER_EXECUTABLE_PATH="${pkgs.chromium}/bin/chromium"
+            '';
           };
         });
 
