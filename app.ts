@@ -6,27 +6,20 @@ async function scrape(_options: void, urlArg: string) {
 	console.log(`Fetching ${urlArg}`);
 	const url = new URL(urlArg);
 	url.protocol = "https:";
-	// url.hostname = domain;
-	// url.port = "443";
-
-	// console.log("Proxy request to:", url.href);
-	// let resp = await fetch(url.href, {
-	// 	headers: {},
-	// 	method: "GET",
-	// 	body: null,
-	// });
-	// console.log(`resp: ${await resp.text()}`)
-
-	const browser = await puppeteer.launch();
+	const browser = await puppeteer.launch({
+		skipDownload: true
+	});
 	const page = await browser.newPage();
-	await page.goto("https://example.com");
-	return "ok"
-
+	await page.goto(url.toString());
+	const trackTitleEl = await page.waitForSelector('h2.trackTitle'); // select the element
+	const trackTitle = await trackTitleEl.evaluate(el => el.textContent); // grab the textContent from the element, by evaluating this function in the browser context
+	console.log(`Track Title: ${trackTitle}`)
+	return trackTitle
 }
 
 await new Command()
-	.name("bandcamp-scraper")
-	.description("A scraper for bandcamp.")
+	.name("bc-scraper")
+	.description("A scraper for a popular music site.")
 	.version("v1.0.0")
 	.arguments("<url:string>")
 	.action(scrape)
