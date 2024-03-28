@@ -1,4 +1,4 @@
-import puppeteer, { ElementHandle, PuppeteerLaunchOptions } from 'puppeteer-core';
+import puppeteer, { ElementHandle, Page, PuppeteerLaunchOptions } from 'puppeteer-core';
 import { Command } from 'commander';
 
 const chromePath = process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -13,6 +13,10 @@ async function getText(el: ElementHandle) {
 	})
 }
 
+async function waitSelector(el: Page | ElementHandle, sel: string) {
+	return el.waitForSelector(sel, { timeout: 3000, visible: true })
+}
+
 async function scrape(urlArg: string, _options: void): Promise<void> {
 	console.log(`Fetching ${urlArg}`);
 	const url = new URL(urlArg);
@@ -23,13 +27,17 @@ async function scrape(urlArg: string, _options: void): Promise<void> {
 	} as PuppeteerLaunchOptions);
 	const page = await browser.newPage();
 	await page.goto(url.toString());
-	const trackTitleEl = await page.waitForSelector('h2.trackTitle'); // select the element
-	const trackTitle = await getText(trackTitleEl); // grab the textContent from the element, by evaluating this function in the browser context
-	console.log(`Track Title: ${trackTitle}`)
-	const deetsEl = await page.waitForSelector('div.middleColumn div.deets')
+
+	const trackViewEl = await waitSelector(page, 'div.trackView')
+	const trackTitleEl = await waitSelector(trackViewEl, 'div#name-section h2'); // select the element
+	const trackTitle = await getText(trackTitleEl); // grab the textcontent from the element, by evaluating this function in the browser context
+	const trackArtistEl = await waitSelector(trackViewEl, 'div#name-section h3 a')
+	const trackArtist = await getText(trackArtistEl); // grab the textContent from the element, by evaluating this function in the browser context
+
+	const deetsEl = await waitSelector(trackViewEl, 'div.middleColumn div.deets')
 	while (true) {
 		try {
-			let moreButton = await deetsEl.waitForSelector('div.deets a.more-thumbs', { timeout: 3000, visible: true })
+			let moreButton = await waitSelector(deetsEl, 'div.deets a.more-thumbs')
 			await moreButton.click() // Don't forget to await promises! Even if they don't return something.
 			console.log("Clicked more button")
 		} catch (error) {
@@ -43,6 +51,8 @@ async function scrape(urlArg: string, _options: void): Promise<void> {
 	const comments = await Promise.all(fanCommentEls.map(getText))
 
 	// PRINTING
+	console.log(`Track Title: ${trackTitle}`)
+	console.log(`Track Artist: ${trackArtist}`)
 	console.log()
 	console.log(`Comments: ${fanCommentEls.length}`)
 	comments.forEach(x => console.log(x))
@@ -61,7 +71,7 @@ const program = new Command();
 program
 	.name("bc-scraper")
 	.description("A scraper for a popular music site.")
-	.version("v1.0.0")
+	.version("v0.0.0")
 
 program.command('scrape', { isDefault: true })
 	.description('Scrape page')
