@@ -1,2 +1,6 @@
-run url="https://pearsonsound.bandcamp.com/album/rubble":
-	deno run --allow-net --allow-env --allow-run="/nix/store" --allow-write="/tmp" app.ts {{url}}
+build:
+	tsc
+
+run url="https://pearsonsound.bandcamp.com/album/rubble": build
+	node ./dist/app.js
+

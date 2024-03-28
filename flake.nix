@@ -20,7 +20,13 @@
       devShells = forAllSystems
         (pkgs: {
           default = pkgs.mkShell {
-            packages = [ pkgs.deno pkgs.just ];
+            packages = [
+              pkgs.just
+              pkgs.typescript
+              pkgs.nodejs_21
+              pkgs.nodePackages.pnpm
+              pkgs.chromium
+            ];
             shellHook = ''
               export PUPPETEER_PRODUCT="chrome"
               export PUPPETEER_SKIP_DOWNLOAD="true"
