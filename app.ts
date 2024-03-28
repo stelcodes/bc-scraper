@@ -26,6 +26,31 @@ async function scrape(urlArg: string, _options: void): Promise<void> {
 	const trackTitleEl = await page.waitForSelector('h2.trackTitle'); // select the element
 	const trackTitle = await getText(trackTitleEl); // grab the textContent from the element, by evaluating this function in the browser context
 	console.log(`Track Title: ${trackTitle}`)
+	const deetsEl = await page.waitForSelector('div.middleColumn div.deets')
+	while (true) {
+		try {
+			let moreButton = await deetsEl.waitForSelector('div.deets a.more-thumbs', { timeout: 3000, visible: true })
+			await moreButton.click() // Don't forget to await promises! Even if they don't return something.
+			console.log("Clicked more button")
+		} catch (error) {
+			console.log(`Message: ${error.message}`)
+			console.log("Could not click 'more' button anymore")
+			break
+		}
+	}
+	const fanPicEls = await deetsEl.$$('a.pic')
+	const fanCommentEls = await deetsEl.$$('div.writing div.text')
+	const comments = await Promise.all(fanCommentEls.map(getText))
+
+	// PRINTING
+	console.log()
+	console.log(`Comments: ${fanCommentEls.length}`)
+	comments.forEach(x => console.log(x))
+	console.log()
+	console.log(`Fans: ${fanPicEls.length}`)
+
+
+	process.exit()
 }
 
 const program = new Command();
