@@ -1,7 +1,21 @@
-import puppeteer, { ElementHandle, Page, PuppeteerLaunchOptions } from 'puppeteer-core';
+import puppeteer, { Browser, ElementHandle, Page, PuppeteerLaunchOptions } from 'puppeteer-core';
 import { Command } from 'commander';
 
 const chromePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+
+async function getPage(browser: Browser, url: URL) {
+	const page = await browser.newPage();
+  await page.setRequestInterception(true);
+	page.on('request', request => {
+		if (request.resourceType() === 'image') {
+			request.abort();
+		} else {
+			request.continue();
+		}
+	});
+	await page.goto(url.toString());
+	return page
+}
 
 async function getText(el: ElementHandle) {
 	return el.evaluate(element => {
@@ -25,8 +39,7 @@ async function scrape(urlArg: string, _options: void): Promise<void> {
 		skipDownload: true,
 		executablePath: chromePath
 	} as PuppeteerLaunchOptions);
-	const page = await browser.newPage();
-	await page.goto(url.toString());
+	const page = await getPage(browser, url);
 
 	const trackViewEl = await waitSelector(page, 'div.trackView')
 	const trackTitleEl = await waitSelector(trackViewEl, 'div#name-section h2'); // select the element
